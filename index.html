@@ -430,15 +430,51 @@
     statusEl.className = 'status';
     statusEl.textContent = 'передаю…';
 
-    document.getElementById('f-day').value = state.day.value;
-    document.getElementById('f-format').value = state.format.value;
-    document.getElementById('f-time').value = state.time.value;
-    document.getElementById('f-place').value = state.format.place || '—';
-    document.getElementById('ff_form').submit();
-
-    setTimeout(() => {
+    let done = false;
+    const finishOk = () => {
+      if (done) return;
+      done = true;
       statusEl.textContent = 'ответ отправлен ✓';
-    }, 1200);
+      statusEl.className = 'status';
+    };
+
+    /* запасной путь: обычная отправка формы через скрытый iframe */
+    const fallback = () => {
+      if (done) return;
+      done = true;
+      document.getElementById('f-day').value = state.day.value;
+      document.getElementById('f-format').value = state.format.value;
+      document.getElementById('f-time').value = state.time.value;
+      document.getElementById('f-place').value = state.format.place || '—';
+      document.getElementById('ff_form').submit();
+      statusEl.textContent = 'ответ отправлен ✓';
+      statusEl.className = 'status';
+    };
+
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => { ctrl.abort(); fallback(); }, 6000);
+
+    fetch('https://formsubmit.co/ajax/' + encodeURIComponent(CONFIG.email), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      signal: ctrl.signal,
+      body: JSON.stringify({
+        _subject: 'Кира ответила на приглашение',
+        _template: 'table',
+        _captcha: 'false',
+        'день': state.day.value,
+        'куда': state.format.value,
+        'время': state.time.value,
+        'встреча': state.format.place || '—'
+      })
+    }).then(r => r.json()).then(res => {
+      clearTimeout(timer);
+      if (res && (res.success === 'true' || res.success === true)) finishOk();
+      else fallback();
+    }).catch(() => {
+      clearTimeout(timer);
+      fallback();
+    });
   }
 
   document.getElementById('resetBtn').addEventListener('click', () => {
