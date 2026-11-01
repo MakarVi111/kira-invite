@@ -236,24 +236,14 @@
   </section>
 </main>
 
-<iframe name="ff_target" id="ff_target" title="отправка" style="display:none"></iframe>
-<form id="ff_form" action="https://formsubmit.co/79111959611@mail.ru" method="POST" target="ff_target" hidden>
-  <input type="hidden" name="_subject" value="Кира ответила на приглашение">
-  <input type="hidden" name="_template" value="table">
-  <input type="hidden" name="_captcha" value="false">
-  <input type="hidden" name="день" id="f-day" value="">
-  <input type="hidden" name="куда" id="f-format" value="">
-  <input type="hidden" name="время" id="f-time" value="">
-  <input type="hidden" name="встреча" id="f-place" value="">
-</form>
-
 <script>
 (function(){
   "use strict";
 
-  /* ===== настройки: сюда твой e-mail для ответов ===== */
+  /* ===== настройки ===== */
   const CONFIG = {
-    email: "79111959611@mail.ru" // твоя почта для ответов
+    w3key: "",                        // ключ Web3Forms (придёт на почту)
+    email: "79111959611@mail.ru"
   };
 
   const stage = document.getElementById('stage');
@@ -419,61 +409,41 @@
     if (key === sentKey) return;
     sentKey = key;
 
-    if (!CONFIG.email) {
-      statusEl.hidden = false;
-      statusEl.className = 'status';
+    statusEl.hidden = false;
+    statusEl.className = 'status';
+
+    if (!CONFIG.w3key) {
       statusEl.textContent = 'ответ сохранён ✓';
       return;
     }
 
-    statusEl.hidden = false;
-    statusEl.className = 'status';
     statusEl.textContent = 'передаю…';
 
-    let done = false;
-    const finishOk = () => {
-      if (done) return;
-      done = true;
-      statusEl.textContent = 'ответ отправлен ✓';
-      statusEl.className = 'status';
-    };
-
-    /* запасной путь: обычная отправка формы через скрытый iframe */
-    const fallback = () => {
-      if (done) return;
-      done = true;
-      document.getElementById('f-day').value = state.day.value;
-      document.getElementById('f-format').value = state.format.value;
-      document.getElementById('f-time').value = state.time.value;
-      document.getElementById('f-place').value = state.format.place || '—';
-      document.getElementById('ff_form').submit();
-      statusEl.textContent = 'ответ отправлен ✓';
-      statusEl.className = 'status';
-    };
-
     const ctrl = new AbortController();
-    const timer = setTimeout(() => { ctrl.abort(); fallback(); }, 6000);
+    const timer = setTimeout(() => ctrl.abort(), 10000);
 
-    fetch('https://formsubmit.co/ajax/' + encodeURIComponent(CONFIG.email), {
+    fetch('https://api.web3forms.com/submit', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
       signal: ctrl.signal,
       body: JSON.stringify({
-        _subject: 'Кира ответила на приглашение',
-        _template: 'table',
-        _captcha: 'false',
-        'день': state.day.value,
-        'куда': state.format.value,
-        'время': state.time.value,
-        'встреча': state.format.place || '—'
+        access_key: CONFIG.w3key,
+        subject: 'Кира ответила на приглашение 💌',
+        from_name: 'Приглашение',
+        'День': state.day.value,
+        'Куда': state.format.value,
+        'Время': state.time.value,
+        'Встреча': state.format.place || '—'
       })
     }).then(r => r.json()).then(res => {
       clearTimeout(timer);
-      if (res && (res.success === 'true' || res.success === true)) finishOk();
-      else fallback();
+      const ok = res && res.success;
+      statusEl.textContent = ok ? 'ответ отправлен ✓' : 'не получилось отправить';
+      statusEl.className = 'status' + (ok ? '' : ' err');
     }).catch(() => {
       clearTimeout(timer);
-      fallback();
+      statusEl.textContent = 'не получилось отправить';
+      statusEl.className = 'status err';
     });
   }
 
