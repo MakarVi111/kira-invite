@@ -240,10 +240,9 @@
 (function(){
   "use strict";
 
-  /* ===== настройки: токен бота и твой chat_id ===== */
+  /* ===== настройки: сюда твой e-mail для ответов ===== */
   const CONFIG = {
-    tgToken: "",
-    tgChat: ""
+    email: "79111959611@mail.ru" // твоя почта для ответов
   };
 
   const stage = document.getElementById('stage');
@@ -404,20 +403,12 @@
     }
   }
 
-  function answerText(){
-    return '💌 Кира выбрала\n' +
-      'день: ' + state.day.value + '\n' +
-      'куда: ' + state.format.value + '\n' +
-      'время: ' + state.time.value + '\n' +
-      'встреча: ' + (state.format.place || '—');
-  }
-
   function send(){
     const key = state.day.value + '|' + state.format.value + '|' + state.time.value;
     if (key === sentKey) return;
     sentKey = key;
 
-    if (!CONFIG.tgToken || !CONFIG.tgChat) {
+    if (!CONFIG.email) {
       statusEl.hidden = false;
       statusEl.className = 'status';
       statusEl.textContent = 'ответ сохранён ✓';
@@ -428,13 +419,21 @@
     statusEl.className = 'status';
     statusEl.textContent = 'передаю…';
 
-    fetch('https://api.telegram.org/bot' + CONFIG.tgToken + '/sendMessage', {
+    fetch('https://formsubmit.co/ajax/' + encodeURIComponent(CONFIG.email), {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ chat_id: CONFIG.tgChat, text: answerText() })
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({
+        _subject: 'Кира ответила на приглашение',
+        _template: 'table',
+        _captcha: 'false',
+        'день': state.day.value,
+        'куда': state.format.value,
+        'время': state.time.value,
+        'встреча': state.format.place || '—'
+      })
     }).then(r => r.json()).then(res => {
-      const ok = res && res.ok;
-      statusEl.textContent = ok ? 'передала тебе ✓' : 'не получилось отправить';
+      const ok = res && (res.success === 'true' || res.success === true);
+      statusEl.textContent = ok ? 'ответ отправлен ✓' : 'не получилось отправить';
       statusEl.className = 'status' + (ok ? '' : ' err');
     }).catch(() => {
       statusEl.textContent = 'не получилось отправить';
