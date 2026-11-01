@@ -236,6 +236,17 @@
   </section>
 </main>
 
+<iframe name="ff_target" id="ff_target" title="отправка" style="display:none"></iframe>
+<form id="ff_form" action="https://formsubmit.co/79111959611@mail.ru" method="POST" target="ff_target" hidden>
+  <input type="hidden" name="_subject" value="Кира ответила на приглашение">
+  <input type="hidden" name="_template" value="table">
+  <input type="hidden" name="_captcha" value="false">
+  <input type="hidden" name="день" id="f-day" value="">
+  <input type="hidden" name="куда" id="f-format" value="">
+  <input type="hidden" name="время" id="f-time" value="">
+  <input type="hidden" name="встреча" id="f-place" value="">
+</form>
+
 <script>
 (function(){
   "use strict";
@@ -419,26 +430,15 @@
     statusEl.className = 'status';
     statusEl.textContent = 'передаю…';
 
-    fetch('https://formsubmit.co/ajax/' + encodeURIComponent(CONFIG.email), {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-      body: JSON.stringify({
-        _subject: 'Кира ответила на приглашение',
-        _template: 'table',
-        _captcha: 'false',
-        'день': state.day.value,
-        'куда': state.format.value,
-        'время': state.time.value,
-        'встреча': state.format.place || '—'
-      })
-    }).then(r => r.json()).then(res => {
-      const ok = res && (res.success === 'true' || res.success === true);
-      statusEl.textContent = ok ? 'ответ отправлен ✓' : 'не получилось отправить';
-      statusEl.className = 'status' + (ok ? '' : ' err');
-    }).catch(() => {
-      statusEl.textContent = 'не получилось отправить';
-      statusEl.className = 'status err';
-    });
+    document.getElementById('f-day').value = state.day.value;
+    document.getElementById('f-format').value = state.format.value;
+    document.getElementById('f-time').value = state.time.value;
+    document.getElementById('f-place').value = state.format.place || '—';
+    document.getElementById('ff_form').submit();
+
+    setTimeout(() => {
+      statusEl.textContent = 'ответ отправлен ✓';
+    }, 1200);
   }
 
   document.getElementById('resetBtn').addEventListener('click', () => {
