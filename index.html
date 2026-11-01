@@ -1,0 +1,459 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#fdf7f1">
+<title>Кира, у меня к тебе дело</title>
+<style>
+  :root{
+    --cream:#fdf7f1;
+    --paper:#fffdfa;
+    --ink:#3a3330;
+    --muted:#8d7f77;
+    --rose:#e3918c;
+    --rose-deep:#c96d68;
+    --sage:#93b3a0;
+    --sand:#f3e5d7;
+    --line:#ecdbcd;
+    --shadow:0 30px 70px -40px rgba(96,62,50,.55);
+  }
+  *{box-sizing:border-box}
+  [hidden]{display:none!important}
+  html,body{margin:0;min-height:100%}
+  body{
+    font-family:"Segoe UI",-apple-system,"Helvetica Neue",Arial,sans-serif;
+    color:var(--ink);
+    background:var(--cream);
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+  .bg{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+  .blob{position:absolute;border-radius:50%;filter:blur(60px);opacity:.55}
+  .b1{width:46vmax;height:46vmax;left:-14vmax;top:-16vmax;background:#f7d9d2}
+  .b2{width:38vmax;height:38vmax;right:-12vmax;top:18vmax;background:#d9e8dd}
+  .b3{width:34vmax;height:34vmax;left:22vmax;bottom:-16vmax;background:#f6e6c9}
+
+  main{position:relative;z-index:1;padding:clamp(18px,4vw,48px) clamp(14px,4vw,32px) 64px}
+
+  /* ---------- конверт ---------- */
+  .stage{min-height:88svh;display:grid;place-items:center;gap:22px;text-align:center}
+  .stage .hint{margin:0;font-size:13px;letter-spacing:.22em;text-transform:uppercase;color:var(--muted);animation:breathe 2.8s ease-in-out infinite}
+  @keyframes breathe{0%,100%{opacity:.45}50%{opacity:1}}
+
+  .envelope{position:relative;width:min(340px,86vw);aspect-ratio:3/2;border:0;padding:0;background:none;cursor:pointer;filter:drop-shadow(0 26px 30px rgba(120,80,65,.28));transition:transform .35s ease}
+  .envelope:hover{transform:translateY(-4px) rotate(-1deg)}
+  .env-body{position:absolute;inset:0;border-radius:10px;background:linear-gradient(160deg,#fdf1e6,#f6e2d3);border:1px solid #eed9c8}
+  .letter{position:absolute;left:8%;right:8%;bottom:9%;height:78%;background:var(--paper);border-radius:6px;border:1px solid #efe1d4;display:flex;align-items:flex-start;justify-content:center;padding-top:14px;font-family:"Segoe Script","Bradley Hand","Segoe Print",cursive;font-size:20px;color:#a9827a;transition:transform .8s cubic-bezier(.2,.9,.2,1)}
+  .env-front{position:absolute;inset:0;border-radius:10px;background:linear-gradient(160deg,#fbeade,#f3ddcc);clip-path:polygon(0 100%,0 16%,50% 62%,100% 16%,100% 100%);border:1px solid #eed9c8}
+  .env-flap{position:absolute;inset:0;border-radius:10px;background:linear-gradient(170deg,#f7e0cf,#eccdb8);clip-path:polygon(0 0,100% 0,50% 64%);transform-origin:top center;transition:transform .7s cubic-bezier(.4,.1,.2,1);border:1px solid #e9cfba}
+  .seal{position:absolute;left:50%;top:52%;translate:-50% -50%;width:52px;height:52px;border-radius:50%;display:grid;place-items:center;background:radial-gradient(circle at 35% 30%,#e79b96,#c96d68 70%);color:#fff6f2;font-family:"Segoe Script","Bradley Hand",cursive;font-size:24px;box-shadow:0 6px 14px rgba(150,80,70,.35),inset 0 0 0 3px rgba(255,255,255,.22);transition:opacity .35s ease,transform .5s ease}
+  .envelope.opening .env-flap{transform:rotateX(180deg)}
+  .envelope.opening .seal{opacity:0;transform:translate(-50%,-50%) scale(.7)}
+  .envelope.opening .letter{transform:translateY(-16%)}
+
+  /* ---------- карточка ---------- */
+  .card{max-width:660px;margin:0 auto;background:var(--paper);border:1px solid var(--line);border-radius:26px;box-shadow:var(--shadow);padding:clamp(22px,5vw,44px);animation:rise .7s cubic-bezier(.2,.8,.2,1) both}
+  @keyframes rise{from{opacity:0;transform:translateY(26px) scale(.985)}to{opacity:1;transform:none}}
+
+  .kicker{font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--rose-deep);display:flex;align-items:center;gap:10px;margin-bottom:14px}
+  .kicker::after{content:"";flex:1;height:1px;background:var(--line)}
+  h1{margin:0 0 12px;font-size:clamp(30px,7vw,44px);line-height:1.06;letter-spacing:-.5px;font-weight:650}
+  h1 em{font-style:normal;color:var(--rose-deep)}
+  .lead{margin:0 0 8px;color:var(--muted);font-size:clamp(14px,3.4vw,16px);line-height:1.6;max-width:46ch}
+  .deadline{margin:14px 0 0;display:inline-flex;align-items:center;gap:8px;font-size:12.5px;color:#a4796c;background:#fdf1e9;border:1px solid #f2dfd2;border-radius:999px;padding:7px 13px}
+  .deadline b{font-variant-numeric:tabular-nums;color:var(--rose-deep)}
+
+  /* ---------- опрос ---------- */
+  .quiz{margin-top:26px;border-top:1px dashed var(--line);padding-top:20px}
+  .progress{display:flex;align-items:center;gap:12px;margin-bottom:18px}
+  .bar{flex:1;height:3px;border-radius:99px;background:#f0e3d8;overflow:hidden}
+  .bar i{display:block;height:100%;width:33.33%;border-radius:99px;background:linear-gradient(90deg,#e9a29b,#c96d68);transition:width .45s cubic-bezier(.2,.8,.2,1)}
+  .qcount{font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);white-space:nowrap}
+
+  .q{display:none}
+  .q.active{display:block;animation:slideIn .38s cubic-bezier(.2,.8,.2,1)}
+  @keyframes slideIn{from{opacity:0;transform:translateX(18px)}to{opacity:1;transform:none}}
+  .q h2{margin:0 0 14px;font-size:clamp(19px,4.6vw,24px);font-weight:650;letter-spacing:-.2px}
+
+  .options{display:flex;flex-direction:column;gap:10px}
+  .opt{text-align:left;cursor:pointer;background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px 16px;font-family:inherit;color:inherit;display:flex;flex-direction:column;gap:4px;transition:border-color .2s,transform .2s,box-shadow .2s,background .2s,color .2s}
+  .opt:hover{border-color:#e2b9ae;transform:translateY(-2px);box-shadow:0 14px 26px -20px rgba(120,70,60,.8)}
+  .opt .t{font-size:15.5px;font-weight:600;display:flex;justify-content:space-between;gap:10px;align-items:center}
+  .opt .t::after{content:"›";color:#d8b5a8;font-size:20px;line-height:1;transition:.2s}
+  .opt:hover .t::after{color:var(--rose-deep);transform:translateX(3px)}
+  .opt .s{font-size:12.5px;color:var(--muted);line-height:1.45}
+  .opt.sel{background:linear-gradient(180deg,#fff5f2,#fdeee9);border-color:var(--rose);box-shadow:0 0 0 3px rgba(227,145,140,.18)}
+  .opt.sel .t{color:var(--rose-deep)}
+
+  .times{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+  .chip{border:1px solid var(--line);background:#fff;border-radius:999px;padding:10px 16px;font-family:inherit;font-size:14px;cursor:pointer;color:var(--ink);transition:.2s}
+  .chip:hover{border-color:#e2b9ae}
+  .chip.sel{background:var(--rose-deep);border-color:var(--rose-deep);color:#fff8f5}
+  .custom{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:999px;padding:7px 12px 7px 14px;background:#fff}
+  .custom span{font-size:13px;color:var(--muted)}
+  input[type=time]{font-family:inherit;font-size:13.5px;border:0;background:transparent;color:var(--ink);padding:3px 0;width:92px}
+  input[type=time]:focus{outline:0}
+  .note{margin:12px 0 0;font-size:12.5px;color:var(--muted)}
+
+  .back{margin-top:16px;border:0;background:none;font-family:inherit;font-size:13px;color:var(--muted);cursor:pointer;padding:6px 0}
+  .back:hover{color:var(--rose-deep)}
+
+  /* ---------- билет ---------- */
+  .ticket{border-radius:20px;overflow:hidden;border:1px solid var(--line);background:linear-gradient(160deg,#fff0e8,#f8e7dc);animation:rise .6s ease both;margin-top:4px}
+  .ticket-top{padding:24px 24px 18px;display:flex;align-items:flex-end;justify-content:space-between;gap:14px;flex-wrap:wrap}
+  .ticket-top .who{font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:#b07e70;margin-bottom:6px}
+  .ticket-top .name{font-family:"Segoe Script","Bradley Hand","Segoe Print",cursive;font-size:clamp(34px,8vw,48px);line-height:1;color:#8d564c}
+  .stamp{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#7f9a86;border:1.5px solid #a8c2ae;border-radius:999px;padding:7px 12px;background:rgba(255,255,255,.55);rotate:-4deg}
+  .perf{position:relative;height:0;border-top:2px dashed #e3c9b7}
+  .perf span{position:absolute;top:-11px;left:50%;translate:-50% 0;font-size:14px;color:#c9a794;background:#fceade;padding:0 10px}
+  .rows{padding:18px 24px 20px;display:grid;gap:11px}
+  .row{display:flex;justify-content:space-between;align-items:baseline;gap:14px;border-bottom:1px dotted #e6d2c2;padding-bottom:9px}
+  .row:last-child{border-bottom:0;padding-bottom:0}
+  .row .k{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:#b3887a;white-space:nowrap}
+  .row .v{font-size:15px;font-weight:600;text-align:right}
+  .barcode{display:flex;gap:3px;justify-content:center;align-items:flex-end;height:34px;padding:0 24px 20px;opacity:.35}
+  .barcode i{display:block;width:3px;background:#8d564c;border-radius:1px}
+
+  .actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:18px}
+  .btn{font-family:inherit;font-size:14px;cursor:pointer;border-radius:999px;padding:11px 18px;border:1px solid var(--line);background:#fff;color:var(--ink);transition:.2s}
+  .btn:hover{transform:translateY(-1px);box-shadow:0 10px 22px -16px rgba(120,70,60,.9)}
+  .status{font-size:12.5px;color:var(--sage)}
+  .status.err{color:#c0705f}
+
+  .spark{position:fixed;top:-20px;font-size:16px;pointer-events:none;z-index:5;animation:fall linear forwards}
+  @keyframes fall{to{transform:translateY(105vh) rotate(320deg);opacity:0}}
+
+  @media (max-width:420px){
+    .ticket-top{padding:20px 18px 16px}
+    .rows{padding:14px 18px 16px}
+    .play{padding:10px 13px}
+  }
+  @media (prefers-reduced-motion:reduce){
+    *{animation-duration:.01ms!important;transition-duration:.01ms!important}
+  }
+</style>
+</head>
+<body>
+<div class="bg" aria-hidden="true">
+  <div class="blob b1"></div>
+  <div class="blob b2"></div>
+  <div class="blob b3"></div>
+</div>
+
+<main>
+  <section class="stage" id="stage">
+    <button class="envelope" id="envelope" aria-label="Открыть приглашение">
+      <span class="env-body"></span>
+      <span class="letter">Кире</span>
+      <span class="env-front"></span>
+      <span class="env-flap"></span>
+      <span class="seal">К</span>
+    </button>
+    <p class="hint">нажми на конверт</p>
+  </section>
+
+  <section class="card" id="card" hidden>
+    <div class="kicker">приглашение · лично Кире</div>
+    <h1>Кира, <em>у меня к тебе дело</em></h1>
+    <p class="lead">Совсем небольшое. У меня есть понедельник и вторник, и я очень хочу провести один из этих дней с тобой. Три вопроса — и я всё устрою.</p>
+    <div class="deadline" id="deadline" hidden><span>жду ответ до</span><b id="deadlineTime">00:00</b></div>
+
+    <div class="quiz" id="quiz">
+      <div class="progress">
+        <div class="bar"><i id="barFill"></i></div>
+        <span class="qcount" id="qcount">вопрос 1 из 3</span>
+      </div>
+
+      <section class="q active" data-q="1">
+        <h2>Какой день тебе больше нравится?</h2>
+        <div class="options" data-group="day">
+          <button class="opt" data-value="понедельник, 2 ноября" data-short="понедельник">
+            <span class="t">понедельник</span>
+            <span class="s">2 ноября · начало недели, и сразу хорошее</span>
+          </button>
+          <button class="opt" data-value="вторник, 3 ноября" data-short="вторник">
+            <span class="t">вторник</span>
+            <span class="s">3 ноября · каникулы уже подходят к концу, но время ещё есть</span>
+          </button>
+        </div>
+      </section>
+
+      <section class="q" data-q="2">
+        <h2>Что делаем?</h2>
+        <div class="options" data-group="format">
+          <button class="opt" data-value="Ко мне — игры, сериал, красота и болтовня" data-short="Ко мне" data-place="у меня дома">
+            <span class="t">Ко мне</span>
+            <span class="s">игры, сериал, красота и болтовня… и ещё кое-что, о чём ты сама знаешь</span>
+          </button>
+          <button class="opt" data-value="Шуваловский парк — погулять рядом" data-short="Шуваловский парк" data-place="встречаю у твоего дома">
+            <span class="t">Шуваловский парк</span>
+            <span class="s">погуляем рядом · встречу у твоего дома</span>
+          </button>
+          <button class="opt" data-value="Севкабель — поехать гулять" data-short="Севкабель" data-place="встречаю у твоего дома">
+            <span class="t">Севкабель</span>
+            <span class="s">поедем гулять · встречу у твоего дома</span>
+          </button>
+        </div>
+      </section>
+
+      <section class="q" data-q="3">
+        <h2>Во сколько встречаемся?</h2>
+        <div class="times" id="timeChips"></div>
+        <label class="custom" id="customWrap">
+          <span>или своё</span>
+          <input type="time" id="customTime" step="300">
+        </label>
+        <p class="note" id="timeNote">выбери любое удобное время</p>
+      </section>
+
+      <button class="back" id="backBtn" hidden>← назад</button>
+    </div>
+
+    <div id="done" hidden>
+      <div class="ticket">
+        <div class="ticket-top">
+          <div>
+            <div class="who">приглашение принято</div>
+            <div class="name">Кира</div>
+          </div>
+          <div class="stamp">увидимся</div>
+        </div>
+        <div class="perf"><span>✂</span></div>
+        <div class="rows">
+          <div class="row"><span class="k">день</span><span class="v" id="v-day">—</span></div>
+          <div class="row"><span class="k">куда</span><span class="v" id="v-format">—</span></div>
+          <div class="row"><span class="k">время</span><span class="v" id="v-time">—</span></div>
+          <div class="row"><span class="k">встреча</span><span class="v" id="v-place">—</span></div>
+        </div>
+        <div class="barcode" aria-hidden="true"></div>
+      </div>
+      <div class="actions">
+        <button class="btn" id="resetBtn">пройти заново</button>
+        <span class="status" id="status" hidden></span>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ===== настройки: токен бота и твой chat_id ===== */
+  const CONFIG = {
+    tgToken: "",
+    tgChat: ""
+  };
+
+  const stage = document.getElementById('stage');
+  const card = document.getElementById('card');
+  const envelope = document.getElementById('envelope');
+  const quiz = document.getElementById('quiz');
+  const done = document.getElementById('done');
+  const qcount = document.getElementById('qcount');
+  const barFill = document.getElementById('barFill');
+  const backBtn = document.getElementById('backBtn');
+  const timeChips = document.getElementById('timeChips');
+  const customTime = document.getElementById('customTime');
+  const timeNote = document.getElementById('timeNote');
+  const statusEl = document.getElementById('status');
+
+  const state = { day:null, format:null, time:null };
+  let step = 1, sparked = false, sentKey = "";
+
+  /* ---------- конверт ---------- */
+  envelope.addEventListener('click', () => {
+    envelope.classList.add('opening');
+    setTimeout(() => {
+      stage.hidden = true;
+      card.hidden = false;
+      window.scrollTo({ top:0, behavior:'smooth' });
+    }, 620);
+  });
+
+  /* ---------- дедлайн ---------- */
+  (function deadline(){
+    const end = new Date();
+    end.setHours(23, 59, 59, 0);
+    const el = document.getElementById('deadline');
+    const out = document.getElementById('deadlineTime');
+    const tick = () => {
+      const ms = end - new Date();
+      if (ms <= 0) { el.hidden = true; return; }
+      const h = Math.floor(ms / 3600000);
+      const m = Math.floor(ms % 3600000 / 60000);
+      out.textContent = '00:00 · осталось ' + h + ' ч ' + String(m).padStart(2,'0') + ' мин';
+      el.hidden = false;
+    };
+    tick();
+    setInterval(tick, 30000);
+  })();
+
+  /* ---------- вопросы ---------- */
+  function showStep(n){
+    step = n;
+    document.querySelectorAll('.q').forEach(q => {
+      q.classList.toggle('active', Number(q.dataset.q) === n);
+    });
+    qcount.textContent = 'вопрос ' + n + ' из 3';
+    barFill.style.width = (n * 33.33) + '%';
+    backBtn.hidden = n === 1;
+    if (n === 3) buildTimes();
+  }
+
+  document.querySelectorAll('.options').forEach(group => {
+    group.addEventListener('click', e => {
+      const btn = e.target.closest('.opt');
+      if (!btn) return;
+
+      group.querySelectorAll('.opt').forEach(b => b.classList.remove('sel'));
+      btn.classList.add('sel');
+
+      const key = group.dataset.group;
+      state[key] = {
+        value: btn.dataset.value,
+        short: btn.dataset.short,
+        place: btn.dataset.place || null
+      };
+      if (key === 'format') state.time = null;
+
+      setTimeout(() => showStep(Math.min(3, step + 1)), 240);
+    });
+  });
+
+  backBtn.addEventListener('click', () => showStep(Math.max(1, step - 1)));
+
+  function buildTimes(){
+    const isHome = state.format && state.format.short === 'Ко мне';
+    const list = isHome ? ['10:00','11:00','12:00','13:00','14:00','15:00','16:00']
+                        : ['11:00','12:00','14:00','16:00','18:00','20:00'];
+    if (timeChips.childElementCount === list.length && !customTime.value) {
+      // уже построено
+    }
+    timeChips.innerHTML = '';
+    list.forEach(t => {
+      const b = document.createElement('button');
+      b.className = 'chip';
+      b.type = 'button';
+      b.textContent = t;
+      if (state.time && state.time.value === t) b.classList.add('sel');
+      b.addEventListener('click', () => {
+        timeChips.querySelectorAll('.chip').forEach(c => c.classList.remove('sel'));
+        b.classList.add('sel');
+        customTime.value = '';
+        state.time = { value:t, short:t };
+        finish();
+      });
+      timeChips.appendChild(b);
+    });
+    if (isHome) {
+      timeNote.textContent = 'у меня гости до 17:00 — выбирай с 10:00 до 17:00';
+      customTime.min = '10:00'; customTime.max = '17:00';
+    } else {
+      timeNote.textContent = 'выбери любое удобное время';
+      customTime.min = '10:00'; customTime.max = '22:00';
+    }
+  }
+
+  customTime.addEventListener('change', () => {
+    if (!customTime.value) return;
+    timeChips.querySelectorAll('.chip').forEach(c => c.classList.remove('sel'));
+    state.time = { value: customTime.value, short: customTime.value };
+    finish();
+  });
+
+  /* ---------- финал ---------- */
+  function finish(){
+    quiz.hidden = true;
+    done.hidden = false;
+
+    document.getElementById('v-day').textContent = state.day.value;
+    document.getElementById('v-format').textContent = state.format.value;
+    document.getElementById('v-time').textContent = state.time.value;
+    document.getElementById('v-place').textContent = state.format.place || '—';
+
+    if (!sparked) { sparked = true; sparkle(); makeBarcode(); }
+    done.scrollIntoView({ behavior:'smooth', block:'center' });
+    send();
+  }
+
+  function makeBarcode(){
+    const box = document.querySelector('.barcode');
+    if (box.childElementCount) return;
+    for (let i = 0; i < 42; i++) {
+      const bar = document.createElement('i');
+      bar.style.height = (14 + Math.random() * 20) + 'px';
+      bar.style.width = (Math.random() > .8 ? 5 : 2) + 'px';
+      box.appendChild(bar);
+    }
+  }
+
+  function sparkle(){
+    const chars = ['✨','🌿','☕','🎉','💌','🍂'];
+    for (let i = 0; i < 24; i++) {
+      const s = document.createElement('span');
+      s.className = 'spark';
+      s.textContent = chars[Math.floor(Math.random() * chars.length)];
+      s.style.left = Math.random() * 100 + 'vw';
+      s.style.animationDuration = (2.4 + Math.random() * 2.2) + 's';
+      s.style.animationDelay = (Math.random() * .5) + 's';
+      s.style.opacity = .5 + Math.random() * .5;
+      document.body.appendChild(s);
+      setTimeout(() => s.remove(), 5200);
+    }
+  }
+
+  function answerText(){
+    return '💌 Кира выбрала\n' +
+      'день: ' + state.day.value + '\n' +
+      'куда: ' + state.format.value + '\n' +
+      'время: ' + state.time.value + '\n' +
+      'встреча: ' + (state.format.place || '—');
+  }
+
+  function send(){
+    const key = state.day.value + '|' + state.format.value + '|' + state.time.value;
+    if (key === sentKey) return;
+    sentKey = key;
+
+    if (!CONFIG.tgToken || !CONFIG.tgChat) {
+      statusEl.hidden = false;
+      statusEl.className = 'status';
+      statusEl.textContent = 'ответ сохранён ✓';
+      return;
+    }
+
+    statusEl.hidden = false;
+    statusEl.className = 'status';
+    statusEl.textContent = 'передаю…';
+
+    fetch('https://api.telegram.org/bot' + CONFIG.tgToken + '/sendMessage', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ chat_id: CONFIG.tgChat, text: answerText() })
+    }).then(r => r.json()).then(res => {
+      const ok = res && res.ok;
+      statusEl.textContent = ok ? 'передала тебе ✓' : 'не получилось отправить';
+      statusEl.className = 'status' + (ok ? '' : ' err');
+    }).catch(() => {
+      statusEl.textContent = 'не получилось отправить';
+      statusEl.className = 'status err';
+    });
+  }
+
+  document.getElementById('resetBtn').addEventListener('click', () => {
+    document.querySelectorAll('.opt.sel').forEach(b => b.classList.remove('sel'));
+    timeChips.innerHTML = '';
+    customTime.value = '';
+    state.day = state.format = state.time = null;
+    sentKey = '';
+    done.hidden = true;
+    quiz.hidden = false;
+    showStep(1);
+    card.scrollIntoView({ behavior:'smooth', block:'start' });
+  });
+})();
+</script>
+</body>
+</html>
